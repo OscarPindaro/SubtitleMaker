@@ -2,20 +2,23 @@ import com.hamoid.*;
 
 import java.io.File;
  
+ 
+String SAVE_FRAME_PATH = "frames/";
+String SUB_DEFAULT_PATH = "input/subtitles.lrc";
+int FONT_SIZE = 60;
+float fraction= 0.01;
+boolean USE_VIDEOEXPORT=false;
+boolean SAVE_IMAGES = true;
+color SUB_COLORS = color(255,255,255);
+ 
 PGraphics graph;
 int curr_frame = 0;
-boolean GREEN_SCREEN = true;
-boolean SAVE_IMAGES = false;
-String SAVE_FRAME_PATH = "frames/";
 String SAVE_MOVIE_PATH = "output/";
 PFont font; 
 String FONTNAME = "ROCK.TTF";
 Subtitles subtitles;
-String SUB_DEFAULT_PATH = "input/subtitles.lrc";
-int FPS = 24;
 float TEXT_WIDTH;
 float TEXT_HEGIHT;
-float fraction= 0.01;
 VideoExport videoExport;
 String DEFAULT_WIDTH = "1080";
 String DEFAULT_HEIGHT = "720";
@@ -33,9 +36,9 @@ ProgressBar pbar;
 
 void setup() {
   size(420, 300);
-  font = createFont(FONTNAME, 40);
+  font = createFont(FONTNAME, FONT_SIZE);
   subtitles = new Subtitles(SUB_DEFAULT_PATH);
-  //deleteOldData(); 
+  deleteOldData(); 
   fps_input= new TextInput("FPS");
   width_input= new TextInput("Width");
   height_input= new TextInput("Height");
@@ -56,17 +59,13 @@ void deleteOldData(){
   }
 }
 
-
-
 boolean render_video = false;
 boolean created_object = false;
 int pg_w = 1080;
 int pg_h = 720;
 int pg_fps = 24;
 void draw(){
-
   int tol = 5;
-
   if (!render_video){
     background(c_dark);
     beginCard( "VIDEO OPTION", 10, 10, s_big*2, s_big);
@@ -104,7 +103,7 @@ void draw(){
   else{
     if (!created_object){
       println("Starting rendering");
-      createRenderObjects(pg_w, pg_h, subtitles.getTitle(),pg_fps );
+      createRenderObjects(pg_w, pg_h, subtitles.getTitle(), pg_fps);
       created_object = true;
     }
     createMovie(pg_w, pg_h, pg_fps);
@@ -118,21 +117,30 @@ void draw(){
 void createRenderObjects(int pg_width, int pg_height, String title, int fps){
     graph = createGraphics(pg_width, pg_height);
     //graph.smooth(8);
-    videoExport = new VideoExport(this, SAVE_MOVIE_PATH + title +".mov", graph);
-    setFfmpegOptions(Options.APPLE_PRO_RES);
-    videoExport.setFrameRate(fps);
-    videoExport.startMovie();
+    if (USE_VIDEOEXPORT){
+      videoExport = new VideoExport(this, SAVE_MOVIE_PATH + title +".mov", graph);
+      setFfmpegOptions(Options.APPLE_PRO_RES);
+      videoExport.setFrameRate(fps);
+      videoExport.startMovie();
+    }
+
 }
 
 void createMovie(int pg_width, int pg_height, int fps){
   drawGraphics(pg_width, pg_height);
-  videoExport.saveFrame();
-  graph.save(String.format("frames/%6d.png", curr_frame));
+  if (USE_VIDEOEXPORT){
+    videoExport.saveFrame();
+  }
+  if (SAVE_IMAGES){
+    graph.save(String.format(SAVE_FRAME_PATH + "%6d.png", curr_frame));
+  }
   curr_frame+=1;
   graph.clear();
   subtitles.advance(1.0/fps*1000);
   if (subtitles.hasEnded()){
-    videoExport.endMovie();
+    if (USE_VIDEOEXPORT){
+      videoExport.endMovie();
+    }
     exit();
   }
 }
@@ -141,7 +149,7 @@ void drawGraphics(int pg_width, int pg_height){
   TEXT_WIDTH = pg_width - fraction*pg_width;
   TEXT_HEGIHT = pg_height;
   graph.beginDraw();
-  graph.fill(255,255,255);
+  graph.fill(SUB_COLORS);
   graph.textAlign(CENTER, CENTER);
   graph.rectMode(CENTER);
   graph.textFont(font);
