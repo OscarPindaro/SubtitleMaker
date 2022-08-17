@@ -90,6 +90,43 @@ class Subtitles{
     return ti;
   }
   
+  public float getPercProgress(){
+    return curr_time / times.get(times.size()-1);
+  }
+  
  
   
+}
+
+class ProgressBar{
+  
+  private float x;
+  private float y;
+  private float w;
+  private float h;
+  private float perc = 0.0;
+  
+  ProgressBar(float x, float y, float w, float h){
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+  }
+  
+  void setPerc(float perc){
+    if (perc < 0 || perc > 1) return;
+    this.perc = perc;
+  }
+  
+  void draw(color bg, color fg){
+    rectMode(CORNER);
+    fill(bg);
+    rect(x,y, w, h);
+    fill(fg);
+    rect(x,y,perc*w, h);
+    
+  }
+  
+  
+
 }
